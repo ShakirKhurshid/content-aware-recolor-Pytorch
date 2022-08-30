@@ -1,6 +1,6 @@
 
 # Content Aware Image Recoloarization
-A deep neural network  which recolors an image according to a given tar-
+A deep neural network  which recolors an image according to a given tar
 get color that is useful to express image in various color concepts. The network is capable of
 performing a content aware recolorization based on the target palette. 
 
