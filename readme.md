@@ -7,7 +7,7 @@ performing a content aware recolorization based on the target palette.
 
 
 ## Usage
-Run DL2022/run.py as
+Run __DL2022/run.py__ as
 
 `python run.py -i 'path_to_input_image' -p 'hexcodes_of_color_palette' -m 'path_to_saved_model' -o 'path_of_output'`
 
