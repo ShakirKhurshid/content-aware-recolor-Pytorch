@@ -5,9 +5,10 @@ get color that is useful to express image in vari-ous color concepts. The networ
 performing a content aware recolorization based on the target palette. 
 
 ### Results
-![Results](/Dl2022/Samples/results.jpg)
-
-
+![Results](DL2022/Samples/results.jpg)
+*a) The source image
+*b) The Target Palette
+*c) The recolorized image as per the target palette
 
 ## Usage
 Run __DL2022/run.py__ as
