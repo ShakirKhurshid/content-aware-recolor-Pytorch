@@ -1,24 +1,63 @@
 from PIL import Image
 import cv2
-
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 from skimage.color import rgb2lab, lab2rgb
-
 import torch
 from torch import nn
 import torch.nn.functional as F
 from torchvision import transforms
+from functools import partial
+import argparse 
 
+# initialize the logger
 from logger import log_to_stdout
 logger = log_to_stdout(level ='DEBUG')
 
+def process_arguments():
+    '''Collect the input argument's
+	   Return a parser with the arguments
+    '''
+    parser = argparse.ArgumentParser(description = 'Input the image and the target palette')
+
+    parser.add_argument(
+        '-i',            
+        '--input_image',
+		type = str,
+		required=True,
+		default=None,
+		help='path of the input image'
+    )
+    
+    parser.add_argument(
+        '-p',
+        '--palette',
+        nargs='+',
+        default = [],
+        help='The Target palette'
+    )
+
+    parser.add_argument(
+        '-m',
+        '--model',
+        type = str,
+        required=True,
+        default=None,
+        help='path for the model'
+    )
+
+    parser.add_argument(
+        '-o',
+        '--out_path',
+        type = str,
+        required=False,
+        default='out.jpg',
+        help='output_path'
+    )
+
+    return parser.parse_args()
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 device
-
-from functools import partial
-
 
 class Conv2dAuto(nn.Conv2d):
     def __init__(self, *args, **kwargs):
@@ -176,9 +215,10 @@ class RecoloringDecoder(nn.Module):
         target_palettes = target_palettes.permute(2, 0, 1).reshape(bz, 18, h, w)
         logger.debug('target Palette shape: {} '.format(target_palettes.shape))
 
-        # concatenate target_palettes with c1
+        # Concatenate target_palettes with c1
         logger.info('\n Concatenate target_palettes with C1')
         x = torch.cat((c1.float(), target_palettes.float()), 1)
+
         logger.debug('X shape: {} '.format(x.shape))
         x = self.dconv_up_4(x)
         logger.debug('X shape: {} '.format(x.shape))
@@ -186,23 +226,27 @@ class RecoloringDecoder(nn.Module):
         logger.debug('X shape: {} '.format(x.shape))
 
 
-        # concatenate c2 with x
+        # Concatenate c2 with x
         logger.info('\n Concatenate c2 with x')
-
+        
+        # Reshape x to match the shape of the content feature c2
         if not x.shape[2:] == c2.shape[2:]:
             x = F.interpolate(x, (c2.shape[2:]))
             logger.debug('X shape after interpolatiion: {} '.format(x.shape))
 
         x = torch.cat([c2, x], dim=1)
         logger.debug('X shape: {} '.format(x.shape))
+
         x = self.dconv_up_3(x)
         logger.debug('X shape: {} '.format(x.shape))
+
         x = self.upsample(x)
         logger.debug('X shape: {} '.format(x.shape))
 
         # concatenate target_palettes and c3 with x
         logger.info('\n Concatenate target_palettes and c3 with x')
 
+        # Reshape x to match the shape of the content feature c2
         if not x.shape[2:] == c3.shape[2:]:
             x = F.interpolate(x, (c3.shape[2:]))
             logger.debug('X shape after interpolatiion: {} '.format(x.shape))
@@ -221,7 +265,7 @@ class RecoloringDecoder(nn.Module):
         x = self.upsample(x)
         logger.debug('X shape: {} '.format(x.shape))
 
-        # concatenate target_palettes and c4 with x
+        # Concatenate target_palettes and c4 with x
         logger.info('\n Concatenate target_palettes and c4 with x')
 
         if not x.shape[2:] == c4.shape[2:]:
@@ -251,11 +295,6 @@ class RecoloringDecoder(nn.Module):
         return x
 
 
-#############################################
-# INPUT FUNCTION
-#####################################################
-# IMAGE LOADING AND PREPROCESSING TRANSFORMATIONS
-
 def pooling(image):
     m = nn.AdaptiveAvgPool2d((510,51))
     output = m(image)
@@ -263,6 +302,7 @@ def pooling(image):
 
 
 def inputs(image_path, hex_codes):
+    '''Input image preprocessing'''
     transform = transforms.Compose([transforms.ToPILImage(),
                                     transforms.ToTensor(), ])
 
@@ -284,10 +324,12 @@ def inputs(image_path, hex_codes):
     return image, illu, flat_palette
 
 
-def run_model(image, illu, palette):
+def run_model(image, illu, palette, FE, RD):
     image = image[None, :, :]
+    # Get content features via the Feature encoder
     c1, c2, c3, c4 = FE.forward(image.float().to(device))
     logger.debug('c1 shape: {} ,  c2 shape: {} , c3 shape: {} , c4 shape: {}'.format(c1.shape,c2.shape,c3.shape,c4.shape))
+    # Run the decoder network
     out = RD.forward(c1, c2, c3, c4, palette.float().to(device), illu.float().to(device))
     logger.debug( 'out shape: {} '.format(out.shape))
     out = out.detach().cpu().numpy()
@@ -296,11 +338,6 @@ def run_model(image, illu, palette):
     out = cv2.convertScaleAbs(out, alpha=(255.0))
     out = Image.fromarray(out)
     return out
-
-
-######################################################################################################
-# ILLLUMINANNCE AND HEX CODE CONVERTER
-########################################################################################################3
 
 def get_illuminance(img):
     """
@@ -319,6 +356,7 @@ def get_illuminance(img):
 
 
 def hex_to_rgb(hex_array):
+    "Hex code to RGB convertor"
     logger.info('Starting hex_to_rgb Function .....')
     palette = []
     for hexcode in hex_array:
@@ -334,23 +372,26 @@ def hex_to_rgb(hex_array):
 
     return palette
 
-colors = ['#507b71',
-              '#6caebc',
-              '#6ead9c',
-              '#afd9c3',
-              '#b8dfdc',
-              '#ecebd7'
+def main():
+    # Process the arguments
+    input_arguments = process_arguments()
+    # Get the palette
+    colors = input_arguments.palette
+    # Get the input image
+    input_image = input_arguments.input_image
+    # Get the model
+    state = torch.load(input_arguments.model)
+    FE = FeatureEncoder().float().to(device)
+    RD = RecoloringDecoder().float().to(device)
+    FE.load_state_dict(state['FE'])
+    RD.load_state_dict(state['RD'])
+    # Preprocessing
+    image , illu, palette = inputs(input_image, colors)
+    # FE + RE pass
+    out = run_model(image , illu, palette, FE, RD)
+    out.save(input_arguments.out_path)
 
-]
-#path = "/home/frostman/work_stuff/Deep_Learning_Project/image_colorization/saved_model/model.pth"
-path = '/home/frostman/work_stuff/Deep_Learning_Project/3.jpg'
-state = torch.load("/home/frostman/work_stuff/image_colorization/saved_model/model.pth")
-FE = FeatureEncoder().float().to(device)
-RD = RecoloringDecoder().float().to(device)
-FE.load_state_dict(state['FE'])
-RD.load_state_dict(state['RD'])
+if __name__== '__main__':
+    main()
 
 
-image , illu, palette = inputs(path, colors)
-out = run_model(image , illu, palette)
-out.save('tester.jpg')
