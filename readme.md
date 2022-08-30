@@ -6,4 +6,4 @@ performing a content aware recolorization based on the target palette.
 
 ## Usage
 Run DL2022/run.py as
-> python run.py -i 'path to input image' -p 'hexcodes of color palette' -o 'path to save the output'
+`python run.py -i 'path to input image' -p 'hexcodes of color palette' -o 'path to save the output'`
