@@ -1,10 +1,16 @@
 
 # Content Aware Image Recoloarization
 A deep neural network  which recolors an image according to a given tar-
-get color that is useful to express image in vari-ous color concepts. The network is capable of
+get color that is useful to express image in various color concepts. The network is capable of
 performing a content aware recolorization based on the target palette. 
 
+### Results
+![Results](DL2022/Samples/results.jpg)
+*a) The source image*
 
+*b) The Target Palette*
+
+*c) The recolorized image as per the target palette*
 
 ## Usage
 Run __DL2022/run.py__ as
