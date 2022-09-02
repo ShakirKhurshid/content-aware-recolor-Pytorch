@@ -5,7 +5,7 @@ get color that is useful to express image in various color concepts. The network
 performing a content aware recolorization based on the target palette. 
 
 ### Results
-![Results](DL2022/Samples/results.jpg)
+![Results](DL2022/Samples/results.png)
 *a) The source image*
 
 *b) The Target Palette*
