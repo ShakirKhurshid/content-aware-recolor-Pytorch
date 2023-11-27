@@ -1,6 +1,6 @@
 
 # Content Aware Image Recolorization
-A deep neural network  which recolors an image according to a given target color that is useful to express image in various color concepts. The network is capable of
+A deep neural network  which recolors an image according to a given target colour that is useful to express images in various colour concepts. The network is capable of
 performing a content-aware recolorization based on the target palette. 
 
 ### Results
@@ -21,5 +21,5 @@ Example
 `python run.py -i 'Samples/3/3.png' -p '#507b71' '#6caebc' '#6ead9c' '#afd9c3' '#b8dfdc' '#ecebd7' -m 'saved_model/model.pth' -o 'output.jpg'`
 
 ## Refrence
-[PaletteNet: Image Recolorization with Given Color Palette]([URL](https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Cho_PaletteNet_Image_Recolorization_CVPR_2017_paper.pdf)https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Cho_PaletteNet_Image_Recolorization_CVPR_2017_paper.pdf)
+[PaletteNet: Image Recolorization with Given Color Palette](https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Cho_PaletteNet_Image_Recolorization_CVPR_2017_paper.pdf)https://openaccess.thecvf.com/content_cvpr_2017_workshops/w12/papers/Cho_PaletteNet_Image_Recolorization_CVPR_2017_paper.pd)
 
