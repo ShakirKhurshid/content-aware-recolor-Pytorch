@@ -1,7 +1,12 @@
 
 # Content Aware Image Recolorization
-A deep neural network  which recolors an image according to a given target colour that is useful to express images in various colour concepts. The network is capable of
-performing a content-aware recolorization based on the target palette. 
+A deep neural network  which recolors an image according to a given target colour that is useful to express images in various colour concepts. The network is capable of performing a content-aware recolorization based on the target palette. 
+The main features are:
+
+- A convolutional encoder that extracts features from the input image
+- A convolutional decoder that generates a colourized output image
+- A perceptual loss function that measures the similarity between the output and the ground truth images
+- A dataset loader that can handle different image formats and sizes
 
 ### Results
 ![Results](DL2022/Samples/results.png)
